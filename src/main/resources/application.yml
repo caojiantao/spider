@@ -1,0 +1,6 @@
+kugou:
+  songSearch: http://songsearch.kugou.com/song_search_v2
+  songPlay: http://www.kugou.com/yy/index.php
+  mvSearch: http://mvsearch.kugou.com/mv_search
+  mvPlay: http://trackermv.kugou.com/interface/index
+  salt: kugoumvcloud
