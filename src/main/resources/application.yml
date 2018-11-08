@@ -4,3 +4,10 @@ kugou:
   mvSearch: http://mvsearch.kugou.com/mv_search
   mvPlay: http://trackermv.kugou.com/interface/index
   salt: kugoumvcloud
+
+netease:
+  songSearch: https://music.163.com/weapi/cloudsearch/get/web
+  randomKey: ffffffffffffffff
+  ivParameter: "0102030405060708"
+  encSecKey: cf9dff26e87f90e1ae5bd8cc400d1cb9a8cd97739f6305c6ca17069715cdd3c3c249cc016f338867b9fe77b9e17a58c263a233467889d4bb76c0b5f15ec1147aa6e707cde8d586a6010ef0872b0bdfce51adf58e45086b60537276198f4475c6560388f25ec3d38f36908b221e168bdd2a59254f8b15ceaa2df74ba0dff3499c
+  fourthParam: 0CoJUm6Qyw8W8jud
