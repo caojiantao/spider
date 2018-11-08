@@ -4,11 +4,9 @@ import cn.caojiantao.api.configuration.Kugou;
 import cn.caojiantao.api.service.IKugouService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.caojiantao.common.http.HttpParser;
-import com.caojiantao.common.util.JsonUtils;
-import com.caojiantao.common.util.StreamUtils;
+import com.github.caojiantao.util.ExceptionUtils;
+import com.github.caojiantao.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * @author caojiantao
@@ -43,13 +40,14 @@ public class KugouServiceImpl implements IKugouService {
     @Override
     public JSONObject getSongPlay(String fileHash, String albumId) {
         JSONObject play = null;
-        try (InputStream is = HttpParser.connect(kugou.getSongPlay())
-                .data("r", "play/getdata")
-                .data("hash", fileHash)
-                .data("album_id", albumId)
-                .get()
-                .getInputStream()) {
-            play = JSONObject.parseObject(StreamUtils.getStrFromStream(is), JSONObject.class);
+        try {
+            String result = Jsoup.connect(kugou.getSongPlay())
+                    .data("r", "play/getdata")
+                    .data("hash", fileHash)
+                    .data("album_id", albumId)
+                    .get()
+                    .text();
+            play = JSONObject.parseObject(result, JSONObject.class);
         } catch (IOException e) {
             log.error(ExceptionUtils.getStackTrace(e));
         }
@@ -65,10 +63,11 @@ public class KugouServiceImpl implements IKugouService {
     public JSONObject getMvPlay(String hash) {
         JSONObject play = null;
         String key = DigestUtils.md5DigestAsHex((hash + kugou.getSalt()).getBytes());
-        try (InputStream is = HttpParser.connect(kugou.getMvPlay() + "/cmd=100&hash=" + hash + "&key=" + key + "&ext=mp4")
-                .get()
-                .getInputStream()) {
-            play = JSONObject.parseObject(StreamUtils.getStrFromStream(is), JSONObject.class);
+        try {
+            String result = Jsoup.connect(kugou.getMvPlay() + "/cmd=100&hash=" + hash + "&key=" + key + "&ext=mp4")
+                    .get()
+                    .text();
+            play = JSONObject.parseObject(result, JSONObject.class);
         } catch (IOException e) {
             log.error(ExceptionUtils.getStackTrace(e));
         }
@@ -100,14 +99,15 @@ public class KugouServiceImpl implements IKugouService {
     private JSONObject listData(String keyword, int page, int pagesize, String url) {
         JSONArray songs = null;
         int total = 0;
-        try (InputStream is = HttpParser.connect(url)
-                .data("keyword", keyword)
-                .data("page", String.valueOf(page))
-                .data("pagesize", String.valueOf(pagesize))
-                .data("platform", "WebFilter")
-                .get()
-                .getInputStream()) {
-            JSONObject object = JSONObject.parseObject(StreamUtils.getStrFromStream(is), JSONObject.class);
+        try {
+            String result = Jsoup.connect(url)
+                    .data("keyword", keyword)
+                    .data("page", String.valueOf(page))
+                    .data("pagesize", String.valueOf(pagesize))
+                    .data("platform", "WebFilter")
+                    .get()
+                    .text();
+            JSONObject object = JSONObject.parseObject(result, JSONObject.class);
             // 获取歌曲list
             songs = object.getJSONObject("data").getJSONArray("lists");
             total = object.getJSONObject("data").getInteger("total");

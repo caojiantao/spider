@@ -2,24 +2,20 @@ package cn.caojiantao.api.service.impl;
 
 import cn.caojiantao.api.service.IYouKuService;
 import com.alibaba.fastjson.JSONObject;
-import com.caojiantao.common.http.HttpParser;
-import com.caojiantao.common.http.WebUtils;
-import com.caojiantao.common.util.StreamUtils;
 import com.google.common.base.Strings;
-import org.apache.commons.lang3.ArrayUtils;
+import org.jsoup.Jsoup;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.RestTemplate;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -58,19 +54,21 @@ public class YoukuServiceImpl implements IYouKuService {
         JSONObject dataObject = getDataParam(vid, ts, cna);
         String sign = getSignStr(ts, tkMap.get("token"), dataObject.toJSONString());
 
-        try (InputStream is = HttpParser.connect("http://acs.youku.com/h5/mtop.youku.play.ups.appinfo.get/1.1/")
-                .data("appKey", APPKEY)
-                .data("t", ts)
-                .data("sign", sign)
-                .data("data", dataObject.toJSONString())
-                .header("Referer", "http://v.youku.com")
-                .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36")
-                .cookie("referhost", "http%3A%2F%2Fso.youku.com")
-                .cookie("cna", cna)
-                .cookie("_m_h5_tk", tkMap.get("tk"))
-                .cookie("_m_h5_tk_enc", tkMap.get("tkEnc"))
-                .get().getInputStream()) {
-            JSONObject object = JSONObject.parseObject(StreamUtils.getStrFromStream(is));
+        try {
+            String result = Jsoup.connect("http://acs.youku.com/h5/mtop.youku.play.ups.appinfo.get/1.1/")
+                    .data("appKey", APPKEY)
+                    .data("t", ts)
+                    .data("sign", sign)
+                    .data("data", dataObject.toJSONString())
+                    .header("Referer", "http://v.youku.com")
+                    .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36")
+                    .cookie("referhost", "http%3A%2F%2Fso.youku.com")
+                    .cookie("cna", cna)
+                    .cookie("_m_h5_tk", tkMap.get("tk"))
+                    .cookie("_m_h5_tk_enc", tkMap.get("tkEnc"))
+                    .get()
+                    .text();
+            JSONObject object = JSONObject.parseObject(result);
             if (object != null && object.getJSONObject("data").getJSONObject("data").getJSONObject("error") != null) {
                 initCookie();
                 return getJSONDataByVid(vid, ++retry);
@@ -84,66 +82,66 @@ public class YoukuServiceImpl implements IYouKuService {
 
     private String getCna() {
         String cna = "";
-        try {
-            HttpURLConnection connection = HttpParser.connect("http://log.mmstat.com/eg.js")
-                    .get();
-            connection.connect();
-            List<String> setCookies = WebUtils.getResponseHeaderByName(connection, "Set-Cookie");
-            if (!CollectionUtils.isEmpty(setCookies)) {
-                for (String setCookie : setCookies) {
-                    String[] arr = setCookie.split(";");
-                    if (ArrayUtils.isNotEmpty(arr)) {
-                        for (String anArr : arr) {
-                            String[] temps = anArr.split("=");
-                            if (ArrayUtils.isNotEmpty(temps)) {
-                                String key = temps[0];
-                                String value = temps[1];
-                                if ("cna".equalsIgnoreCase(key)) {
-                                    cna = value;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        RestTemplate template = new RestTemplate();
+        ResponseEntity<String> entity = template.getForEntity("http://log.mmstat.com/eg.js", String.class);
+
+
+//            HttpURLConnection connection = HttpParser.connect("http://log.mmstat.com/eg.js")
+//                    .get();
+//            connection.connect();
+//            List<String> setCookies = WebUtils.getResponseHeaderByName(connection, "Set-Cookie");
+//            if (!CollectionUtils.isEmpty(setCookies)) {
+//                for (String setCookie : setCookies) {
+//                    String[] arr = setCookie.split(";");
+//                    if (ArrayUtils.isNotEmpty(arr)) {
+//                        for (String anArr : arr) {
+//                            String[] temps = anArr.split("=");
+//                            if (ArrayUtils.isNotEmpty(temps)) {
+//                                String key = temps[0];
+//                                String value = temps[1];
+//                                if ("cna".equalsIgnoreCase(key)) {
+//                                    cna = value;
+//                                    break;
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
         return cna;
     }
 
     private Map<String, String> getTks() {
         Map<String, String> map = new HashMap<>(3);
-        try {
-            HttpURLConnection connection = HttpParser.connect("http://acs.youku.com/h5/mtop.youku.play.ups.appinfo.get/1.1/")
-                    .data("appKey", APPKEY)
-                    .get();
-            connection.connect();
-            List<String> setCookies = WebUtils.getResponseHeaderByName(connection, "Set-Cookie");
-            if (!CollectionUtils.isEmpty(setCookies)) {
-                for (String setCookie : setCookies) {
-                    String[] arr = setCookie.split(";");
-                    if (ArrayUtils.isNotEmpty(arr)) {
-                        for (String anArr : arr) {
-                            String[] temps = anArr.split("=");
-                            if (ArrayUtils.isNotEmpty(temps)) {
-                                String key = temps[0];
-                                String value = temps[1];
-                                if ("_m_h5_tk".equalsIgnoreCase(key)) {
-                                    map.put("tk", value);
-                                    map.put("token", value.substring(0, 32));
-                                } else if ("_m_h5_tk_enc".equalsIgnoreCase(key)) {
-                                    map.put("tkEnc", value);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            HttpURLConnection connection = HttpParser.connect("http://acs.youku.com/h5/mtop.youku.play.ups.appinfo.get/1.1/")
+//                    .data("appKey", APPKEY)
+//                    .get();
+//            connection.connect();
+//            List<String> setCookies = WebUtils.getResponseHeaderByName(connection, "Set-Cookie");
+//            if (!CollectionUtils.isEmpty(setCookies)) {
+//                for (String setCookie : setCookies) {
+//                    String[] arr = setCookie.split(";");
+//                    if (ArrayUtils.isNotEmpty(arr)) {
+//                        for (String anArr : arr) {
+//                            String[] temps = anArr.split("=");
+//                            if (ArrayUtils.isNotEmpty(temps)) {
+//                                String key = temps[0];
+//                                String value = temps[1];
+//                                if ("_m_h5_tk".equalsIgnoreCase(key)) {
+//                                    map.put("tk", value);
+//                                    map.put("token", value.substring(0, 32));
+//                                } else if ("_m_h5_tk_enc".equalsIgnoreCase(key)) {
+//                                    map.put("tkEnc", value);
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
         return map;
     }
 
