@@ -1,11 +1,10 @@
-package cn.caojiantao.api.service.impl;
+package cn.caojiantao.api.kugou;
 
-import cn.caojiantao.api.configuration.Kugou;
-import cn.caojiantao.api.service.IKugouService;
+import cn.caojiantao.api.AssetQuery;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.github.caojiantao.util.ExceptionUtils;
-import com.github.caojiantao.util.JsonUtils;
+import com.github.caojiantao.util.JSONUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -33,13 +32,12 @@ public class KugouServiceImpl implements IKugouService {
     }
 
     @Override
-    public JSONObject getSongs(String keyword, int page, int pagesize) {
-        return listData(keyword, page, pagesize, kugou.getSongSearch());
+    public JSONObject getSongs(AssetQuery query) {
+        return getSongs(query, kugou.getSongSearch());
     }
 
     @Override
-    public JSONObject getSongPlay(String fileHash, String albumId) {
-        JSONObject play = null;
+    public JSONObject getSongInfo(String fileHash, String albumId) {
         try {
             String result = Jsoup.connect(kugou.getSongPlay())
                     .data("r", "play/getdata")
@@ -47,16 +45,16 @@ public class KugouServiceImpl implements IKugouService {
                     .data("album_id", albumId)
                     .get()
                     .text();
-            play = JSONObject.parseObject(result, JSONObject.class);
+            return JSONObject.parseObject(result, JSONObject.class).getJSONObject("data");
         } catch (IOException e) {
             log.error(ExceptionUtils.getStackTrace(e));
         }
-        return play;
+        return null;
     }
 
     @Override
-    public JSONObject getMvs(String keyword, int page, int pagesize) {
-        return listData(keyword, page, pagesize, kugou.getMvSearch());
+    public JSONObject getMvs(AssetQuery query) {
+        return getSongs(query, kugou.getMvSearch());
     }
 
     @Override
@@ -96,24 +94,20 @@ public class KugouServiceImpl implements IKugouService {
         return null;
     }
 
-    private JSONObject listData(String keyword, int page, int pagesize, String url) {
-        JSONArray songs = null;
-        int total = 0;
+    private JSONObject getSongs(AssetQuery query, String url) {
         try {
             String result = Jsoup.connect(url)
-                    .data("keyword", keyword)
-                    .data("page", String.valueOf(page))
-                    .data("pagesize", String.valueOf(pagesize))
+                    .data("keyword", query.getKeyword())
+                    .data("page", String.valueOf(query.getPage()))
+                    .data("pagesize", String.valueOf(query.getPagesize()))
                     .data("platform", "WebFilter")
                     .get()
                     .text();
-            JSONObject object = JSONObject.parseObject(result, JSONObject.class);
-            // 获取歌曲list
-            songs = object.getJSONObject("data").getJSONArray("lists");
-            total = object.getJSONObject("data").getInteger("total");
+            JSONObject object = JSONObject.parseObject(result, JSONObject.class).getJSONObject("data");
+            return JSONUtils.toPageData(object.getJSONArray("lists"), object.getInteger("total"));
         } catch (Exception e) {
             log.error(ExceptionUtils.getStackTrace(e));
         }
-        return JsonUtils.toPageData(songs, total);
+        return null;
     }
 }

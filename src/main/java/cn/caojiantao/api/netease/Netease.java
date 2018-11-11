@@ -1,4 +1,4 @@
-package cn.caojiantao.api.configuration;
+package cn.caojiantao.api.netease;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -20,4 +20,7 @@ public class Netease {
     private String encSecKey;
 
     private String songSearch;
+    private String songPlay;
+    private String songLyric;
+    private String songComment;
 }

@@ -1,6 +1,5 @@
-package cn.caojiantao.api.service.impl;
+package cn.caojiantao.api.youku;
 
-import cn.caojiantao.api.service.IYouKuService;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Strings;
 import org.jsoup.Jsoup;

@@ -1,6 +1,5 @@
-package cn.caojiantao.api.controller;
+package cn.caojiantao.api.youku;
 
-import cn.caojiantao.api.service.IYouKuService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;

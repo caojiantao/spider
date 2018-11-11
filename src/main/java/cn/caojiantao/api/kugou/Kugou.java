@@ -1,4 +1,4 @@
-package cn.caojiantao.api.configuration;
+package cn.caojiantao.api.kugou;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

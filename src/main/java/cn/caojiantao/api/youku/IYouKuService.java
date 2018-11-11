@@ -1,4 +1,4 @@
-package cn.caojiantao.api.service;
+package cn.caojiantao.api.youku;
 
 import com.alibaba.fastjson.JSONObject;
 
