@@ -1,7 +1,10 @@
 package cn.caojiantao.api.youku;
 
 import com.alibaba.fastjson.JSONObject;
+import com.github.caojiantao.util.ExceptionUtils;
 import com.google.common.base.Strings;
+import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -16,16 +19,25 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author caojiantao
  */
+@Slf4j
 @Service
 public class YoukuServiceImpl implements IYouKuService {
 
     private final static String CKEY = "DIl58SLFxFNndSV1GFNnMQVYkx1PP5tKe1siZu/86PR1u/Wh1Ptd+WOZsHHWxysSfAOhNJpdVWsdVJNsfJ8Sxd8WKVvNfAS8aS8fAOzYARzPyPc3JvtnPHjTdKfESTdnuTW6ZPvk2pNDh4uFzotgdMEFkzQ5wZVXl2Pf1/Y6hLK0OnCNxBj3+nb0v72gZ6b0td+WOZsHHWxysSo/0y9D2K42SaB8Y/+aD2K42SaB8Y/+ahU+WOZsHcrxysooUeND";
 
     private final static String APPKEY = "24679788";
+
+    private final static Pattern CNA_REGEX = Pattern.compile("cna=(.+?);");
+    private final static Pattern M_H5_TK_REGEX = Pattern.compile("_m_h5_tk=(.+?);");
+    private final static Pattern M_H5_TK_ENC_REGEX = Pattern.compile("_m_h5_tk_enc=(.+?);");
+
+    private final static Pattern ID_REGEX = Pattern.compile("id_(.+?).html");
 
     private String cna;
     private Map<String, String> tkMap;
@@ -38,6 +50,19 @@ public class YoukuServiceImpl implements IYouKuService {
         tkMap = getTks();
     }
 
+    public static void main(String[] args) {
+        String url = "http://v.youku.com/v_show/id_XMzkwMzA2MjMzNg==.html?spm=..m_26664.5~5!2~5~5~5~5~5~5~A";
+        Matcher matcher = ID_REGEX.matcher(url);
+        if (matcher.find()) {
+            String vid = matcher.group(1);
+            System.out.println(vid);
+
+            YoukuServiceImpl youkuService = new YoukuServiceImpl();
+            JSONObject data = youkuService.getJSONDataByVid(vid);
+            System.out.println(data);
+        }
+    }
+
     @Override
     public JSONObject getJSONDataByVid(String vid) {
         return getJSONDataByVid(vid, 0);
@@ -45,7 +70,9 @@ public class YoukuServiceImpl implements IYouKuService {
 
     private JSONObject getJSONDataByVid(String vid, int retry) {
         // 重试超过三次直接返回null
-        if (retry > 3) return null;
+        if (retry > 3) {
+            return null;
+        }
         if (Strings.isNullOrEmpty(cna) || CollectionUtils.isEmpty(tkMap)) {
             initCookie();
         }
@@ -55,6 +82,7 @@ public class YoukuServiceImpl implements IYouKuService {
 
         try {
             String result = Jsoup.connect("http://acs.youku.com/h5/mtop.youku.play.ups.appinfo.get/1.1/")
+                    .ignoreContentType(true)
                     .data("appKey", APPKEY)
                     .data("t", ts)
                     .data("sign", sign)
@@ -74,73 +102,48 @@ public class YoukuServiceImpl implements IYouKuService {
             }
             return object;
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(ExceptionUtils.getStackTrace(e));
         }
         return null;
     }
 
     private String getCna() {
         String cna = "";
-        RestTemplate template = new RestTemplate();
-        ResponseEntity<String> entity = template.getForEntity("http://log.mmstat.com/eg.js", String.class);
-
-
-//            HttpURLConnection connection = HttpParser.connect("http://log.mmstat.com/eg.js")
-//                    .get();
-//            connection.connect();
-//            List<String> setCookies = WebUtils.getResponseHeaderByName(connection, "Set-Cookie");
-//            if (!CollectionUtils.isEmpty(setCookies)) {
-//                for (String setCookie : setCookies) {
-//                    String[] arr = setCookie.split(";");
-//                    if (ArrayUtils.isNotEmpty(arr)) {
-//                        for (String anArr : arr) {
-//                            String[] temps = anArr.split("=");
-//                            if (ArrayUtils.isNotEmpty(temps)) {
-//                                String key = temps[0];
-//                                String value = temps[1];
-//                                if ("cna".equalsIgnoreCase(key)) {
-//                                    cna = value;
-//                                    break;
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
+        try {
+            Connection.Response response = Jsoup.connect("http://log.mmstat.com/eg.js")
+                    .ignoreContentType(true)
+                    .execute();
+            String setCookies = response.header("Set-Cookie");
+            Matcher matcher = CNA_REGEX.matcher(setCookies);
+            if (matcher.find()) {
+                cna = matcher.group(1);
+            }
+        } catch (IOException e) {
+            log.error(ExceptionUtils.getStackTrace(e));
+        }
         return cna;
     }
 
     private Map<String, String> getTks() {
         Map<String, String> map = new HashMap<>(3);
-//        try {
-//            HttpURLConnection connection = HttpParser.connect("http://acs.youku.com/h5/mtop.youku.play.ups.appinfo.get/1.1/")
-//                    .data("appKey", APPKEY)
-//                    .get();
-//            connection.connect();
-//            List<String> setCookies = WebUtils.getResponseHeaderByName(connection, "Set-Cookie");
-//            if (!CollectionUtils.isEmpty(setCookies)) {
-//                for (String setCookie : setCookies) {
-//                    String[] arr = setCookie.split(";");
-//                    if (ArrayUtils.isNotEmpty(arr)) {
-//                        for (String anArr : arr) {
-//                            String[] temps = anArr.split("=");
-//                            if (ArrayUtils.isNotEmpty(temps)) {
-//                                String key = temps[0];
-//                                String value = temps[1];
-//                                if ("_m_h5_tk".equalsIgnoreCase(key)) {
-//                                    map.put("tk", value);
-//                                    map.put("token", value.substring(0, 32));
-//                                } else if ("_m_h5_tk_enc".equalsIgnoreCase(key)) {
-//                                    map.put("tkEnc", value);
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            Connection.Response response = Jsoup.connect("http://acs.youku.com/h5/mtop.youku.play.ups.appinfo.get/1.1/")
+                    .ignoreContentType(true)
+                    .data("appKey", APPKEY)
+                    .execute();
+            String setCookies = response.header("Set-Cookie");
+            Matcher tkMatcher = M_H5_TK_REGEX.matcher(setCookies);
+            if (tkMatcher.find()) {
+                map.put("tk", tkMatcher.group(1));
+                map.put("token", map.get("tk").substring(0, 32));
+            }
+            Matcher tkEncMatcher = M_H5_TK_ENC_REGEX.matcher(setCookies);
+            if (tkEncMatcher.find()) {
+                map.put("tkEnc", tkEncMatcher.group(1));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return map;
     }
 
