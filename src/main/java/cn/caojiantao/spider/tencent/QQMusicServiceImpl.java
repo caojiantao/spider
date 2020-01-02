@@ -1,11 +1,14 @@
-package cn.caojiantao.api.tencent;
+package cn.caojiantao.spider.tencent;
 
-import cn.caojiantao.api.AssetQuery;
+import cn.caojiantao.spider.AssetQuery;
+import cn.caojiantao.spider.media.MediaBeanContext;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.github.caojiantao.util.ExceptionUtils;
+import com.github.caojiantao.util.JSONUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,8 +18,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
-@Service
-public class QQMusicServiceImpl implements IQQMusicService {
+@Service("qq")
+public class QQMusicServiceImpl implements IQQMusicService, InitializingBean {
 
     private static Pattern compile = Pattern.compile("^callback\\((.+?)\\)$");
 
@@ -28,7 +31,7 @@ public class QQMusicServiceImpl implements IQQMusicService {
     }
 
     @Override
-    public JSONObject getSongs(AssetQuery query) {
+    public JSONObject getSongList(AssetQuery query) {
         try {
             String text = Jsoup.connect(tencent.getSongSearch())
                     .ignoreContentType(true)
@@ -39,7 +42,8 @@ public class QQMusicServiceImpl implements IQQMusicService {
                     .text();
             Matcher matcher = compile.matcher(text);
             if (matcher.find()) {
-                return JSON.parseObject(matcher.group(1));
+                JSONObject songs = JSON.parseObject(matcher.group(1)).getJSONObject("data").getJSONObject("song");
+                return JSONUtils.toPageData(songs.getJSONArray("list"), songs.getInteger("totalnum"));
             }
         } catch (IOException e) {
             log.error(ExceptionUtils.getStackTrace(e));
@@ -48,7 +52,8 @@ public class QQMusicServiceImpl implements IQQMusicService {
     }
 
     @Override
-    public JSONObject getSongPlay(String mid) {
+    public JSONObject getSongInfo(AssetQuery query) {
+        String mid = query.getMid();
         double guid = Math.round(2147483647 * Math.random()) * System.currentTimeMillis() % 1e10;
         JSONObject req0 = new JSONObject();
         req0.put("module", "vkey.GetVkeyServer");
@@ -68,10 +73,16 @@ public class QQMusicServiceImpl implements IQQMusicService {
                     .data("data", data.toJSONString())
                     .get()
                     .text();
-            return JSON.parseObject(text);
+            JSONObject result = JSON.parseObject(text);
+            return result.getJSONObject("req_0").getJSONObject("data").getJSONArray("midurlinfo").getJSONObject(0);
         } catch (IOException e) {
             log.error(ExceptionUtils.getStackTrace(e));
         }
         return null;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        MediaBeanContext.register("qq", this);
     }
 }

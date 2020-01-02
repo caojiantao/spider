@@ -1,11 +1,14 @@
-package cn.caojiantao.api.netease;
+package cn.caojiantao.spider.netease;
 
-import cn.caojiantao.api.AssetQuery;
+import cn.caojiantao.spider.AssetQuery;
+import cn.caojiantao.spider.media.MediaBeanContext;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.github.caojiantao.util.ExceptionUtils;
+import com.github.caojiantao.util.JSONUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +25,7 @@ import java.io.IOException;
  */
 @Slf4j
 @Service
-public class NeteaseServiceImpl implements INeteaseService {
+public class NeteaseServiceImpl implements INeteaseService, InitializingBean {
 
     private final Netease netease;
 
@@ -32,7 +35,7 @@ public class NeteaseServiceImpl implements INeteaseService {
     }
 
     @Override
-    public JSONObject getSongs(AssetQuery query) {
+    public JSONObject getSongList(AssetQuery query) {
         SongSearchParam param = new SongSearchParam();
         param.setS(query.getKeyword());
         param.setOffset((query.getPage() - 1) * query.getPagesize());
@@ -43,7 +46,8 @@ public class NeteaseServiceImpl implements INeteaseService {
                     .data("encSecKey", netease.getEncSecKey())
                     .post()
                     .text();
-            return JSON.parseObject(result, JSONObject.class);
+            JSONObject songs = JSON.parseObject(result, JSONObject.class).getJSONObject("result");
+            return JSONUtils.toPageData(songs.getJSONArray("songs"), songs.getInteger("songCount"));
         } catch (IOException e) {
             log.error(ExceptionUtils.getStackTrace(e));
         }
@@ -51,8 +55,9 @@ public class NeteaseServiceImpl implements INeteaseService {
     }
 
     @Override
-    public JSONObject getPlayById(Long id) {
+    public JSONObject getSongInfo(AssetQuery query) {
         try {
+            Long id = query.getId();
             String result = Jsoup.connect(netease.getSongPlay())
                     .data("params", getParams("{\"ids\":\"[" + id + "]\",\"br\":128000,\"csrf_token\":\"\"}"))
                     .data("encSecKey", netease.getEncSecKey())
@@ -67,8 +72,9 @@ public class NeteaseServiceImpl implements INeteaseService {
     }
 
     @Override
-    public String getLyricById(Long id) {
+    public String getLyricById(AssetQuery query) {
         try {
+            Long id = query.getId();
             String result = Jsoup.connect(netease.getSongLyric())
                     .data("params", getParams("{\"id\":\"" + id + "\",\"lv\":-1,\"tv\":-1,\"csrf_token\":\"\"}"))
                     .data("encSecKey", netease.getEncSecKey())
@@ -83,7 +89,7 @@ public class NeteaseServiceImpl implements INeteaseService {
     }
 
     @Override
-    public JSONObject getComments(AssetQuery query) {
+    public JSONObject getCommentList(AssetQuery query) {
         try {
             SongCommentParam param = new SongCommentParam();
             param.setRid("R_SO_4_" + query.getId());
@@ -121,5 +127,10 @@ public class NeteaseServiceImpl implements INeteaseService {
         cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
         byte[] encrypted = cipher.doFinal(text.getBytes());
         return DatatypeConverter.printBase64Binary(encrypted);
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        MediaBeanContext.register("netease", this);
     }
 }

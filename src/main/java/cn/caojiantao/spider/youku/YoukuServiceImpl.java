@@ -1,4 +1,4 @@
-package cn.caojiantao.api.youku;
+package cn.caojiantao.spider.youku;
 
 import com.alibaba.fastjson.JSONObject;
 import com.github.caojiantao.util.ExceptionUtils;
@@ -6,10 +6,8 @@ import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.client.RestTemplate;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;

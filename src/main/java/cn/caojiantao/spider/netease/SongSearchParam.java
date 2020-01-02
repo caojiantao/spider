@@ -1,4 +1,4 @@
-package cn.caojiantao.api.netease;
+package cn.caojiantao.spider.netease;
 
 import lombok.Data;
 

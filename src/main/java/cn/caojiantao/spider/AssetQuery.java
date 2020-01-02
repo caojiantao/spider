@@ -1,4 +1,4 @@
-package cn.caojiantao.api;
+package cn.caojiantao.spider;
 
 import com.github.caojiantao.dto.BaseQuery;
 import lombok.Data;
@@ -13,6 +13,13 @@ public class AssetQuery extends BaseQuery {
 
     private Long id;
     private String keyword;
+
+    // 酷狗
+    private String hash;
+    private String albumId;
+
+    // QQ 音乐
+    private String mid;
 
     @Override
     public Integer getPage() {

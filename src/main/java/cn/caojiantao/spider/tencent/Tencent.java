@@ -1,4 +1,4 @@
-package cn.caojiantao.api.tencent;
+package cn.caojiantao.spider.tencent;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

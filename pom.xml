@@ -4,12 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cn.caojiantao</groupId>
-    <artifactId>api</artifactId>
+    <artifactId>spider</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>api</name>
-    <description>曹建涛的开放平台</description>
+    <description>曹建涛的 Java 爬虫实践</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>

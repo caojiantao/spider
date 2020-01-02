@@ -1,6 +1,7 @@
-package cn.caojiantao.api.kugou;
+package cn.caojiantao.spider.kugou;
 
-import cn.caojiantao.api.AssetQuery;
+import cn.caojiantao.spider.AssetQuery;
+import cn.caojiantao.spider.media.MediaBeanContext;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.github.caojiantao.util.ExceptionUtils;
@@ -10,6 +11,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -22,7 +24,7 @@ import java.io.IOException;
  */
 @Slf4j
 @Service
-public class KugouServiceImpl implements IKugouService {
+public class KugouServiceImpl implements IKugouService, InitializingBean {
 
     private final Kugou kugou;
 
@@ -32,17 +34,17 @@ public class KugouServiceImpl implements IKugouService {
     }
 
     @Override
-    public JSONObject getSongs(AssetQuery query) {
+    public JSONObject getSongList(AssetQuery query) {
         return getSongs(query, kugou.getSongSearch());
     }
 
     @Override
-    public JSONObject getSongInfo(String fileHash, String albumId) {
+    public JSONObject getSongInfo(AssetQuery query) {
         try {
             String result = Jsoup.connect(kugou.getSongPlay())
                     .data("r", "play/getdata")
-                    .data("hash", fileHash)
-                    .data("album_id", albumId)
+                    .data("hash", query.getHash())
+                    .data("album_id", query.getAlbumId())
                     .get()
                     .text();
             return JSONObject.parseObject(result, JSONObject.class).getJSONObject("data");
@@ -53,13 +55,14 @@ public class KugouServiceImpl implements IKugouService {
     }
 
     @Override
-    public JSONObject getMvs(AssetQuery query) {
+    public JSONObject getMvList(AssetQuery query) {
         return getSongs(query, kugou.getMvSearch());
     }
 
     @Override
-    public JSONObject getMvPlay(String hash) {
+    public JSONObject getMvInfo(AssetQuery query) {
         JSONObject play = null;
+        String hash = query.getHash();
         String key = DigestUtils.md5DigestAsHex((hash + kugou.getSalt()).getBytes());
         try {
             String result = Jsoup.connect(kugou.getMvPlay() + "/cmd=100&hash=" + hash + "&key=" + key + "&ext=mp4")
@@ -109,5 +112,10 @@ public class KugouServiceImpl implements IKugouService {
             log.error(ExceptionUtils.getStackTrace(e));
         }
         return null;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        MediaBeanContext.register("kugou", this);
     }
 }

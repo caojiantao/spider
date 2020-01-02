@@ -1,4 +1,4 @@
-package cn.caojiantao.api.kugou;
+package cn.caojiantao.spider.kugou;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
