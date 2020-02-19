@@ -53,7 +53,9 @@ public class EducationController {
         IEducationService educationService = context.getBean(source, IEducationService.class);
         try {
             String playUrl = educationService.getVideoPlayUrl(link);
-            return ResultDTO.success(playUrl);
+            ResultDTO<String> result = new ResultDTO<>();
+            result.setData(playUrl);
+            return result;
         } catch (Exception e) {
             log.error("获取视频地址异常", e);
             return ResultDTO.failure(e.getMessage());
