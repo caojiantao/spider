@@ -54,6 +54,7 @@ public class EducationController {
         try {
             String playUrl = educationService.getVideoPlayUrl(link);
             ResultDTO<String> result = new ResultDTO<>();
+            result.setCode(200);
             result.setData(playUrl);
             return result;
         } catch (Exception e) {

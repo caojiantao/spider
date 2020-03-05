@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -72,16 +71,10 @@ public class AdcServiceImpl implements IEducationService {
 
     @Override
     public String getVideoPlayUrl(String link) throws Exception {
+        String prefix = "https://v.adceee.com/hls";
         Document document = Jsoup.connect(link).get();
-        Elements scripts = document.select("script");
-        for (Element script : scripts) {
-            String text = script.html();
-            Matcher matcher = pattern.matcher(text);
-            if (matcher.matches()) {
-                return matcher.group(1);
-            }
-        }
-        return null;
+        Element element = document.getElementById("vpath");
+        return prefix + element.text();
     }
 
     private Integer getCategoryIndex(String category) {
