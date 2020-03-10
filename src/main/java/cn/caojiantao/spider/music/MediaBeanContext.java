@@ -1,4 +1,4 @@
-package cn.caojiantao.spider.media;
+package cn.caojiantao.spider.music;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

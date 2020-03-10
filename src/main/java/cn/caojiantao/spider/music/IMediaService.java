@@ -1,4 +1,4 @@
-package cn.caojiantao.spider.media;
+package cn.caojiantao.spider.music;
 
 import cn.caojiantao.spider.AssetQuery;
 import com.alibaba.fastjson.JSONObject;

@@ -1,34 +1,39 @@
-package cn.caojiantao.spider.education;
+package cn.caojiantao.spider.adult;
 
 import cn.caojiantao.spider.dto.VideoCategoryDTO;
 import cn.caojiantao.spider.dto.VideoDTO;
 import com.github.caojiantao.util.ExceptionUtils;
+import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author caojiantao
  */
 @Slf4j
 @Service("adczma")
-public class AdcServiceImpl implements IEducationService {
+public class AdcServiceImpl implements IAdultService {
 
     private static String host = "https://adczma.com";
 
-    private static Pattern pattern = Pattern.compile("var vHLSurl = \"(.*)\";");
-
     private Map<String, Integer> categoryIndexMap = new HashMap<>();
+
+    /**
+     * 视频加速域名
+     */
+    private List<String> vpsList = Arrays.asList("https://v.adceee.com/hls/", "https://v.adcecc.com/hls/",
+            "https://v.adcebb.com/hls/", "https://v.adceme.com/hls/", "https://v.adcenn.com/hls/",
+            "https://v.adceku.com/hls/", "https://v.adcekk.com/hls/", "https://v.adceaa.com/hls/",
+            "https://v.adcdzz.com/hls/", "https://v.adceff.com/hls/");
 
     @Override
     public List<VideoCategoryDTO> getVideoCategoryList() throws Exception {
@@ -70,11 +75,20 @@ public class AdcServiceImpl implements IEducationService {
     }
 
     @Override
-    public String getVideoPlayUrl(String link) throws Exception {
-        String prefix = "https://v.adceee.com/hls";
+    @Cacheable(cacheNames = "adultVideo")
+    public VideoDTO getVideoInfo(String link) throws Exception {
+        String vps = vpsList.get(ThreadLocalRandom.current().nextInt(vpsList.size()));
         Document document = Jsoup.connect(link).get();
         Element element = document.getElementById("vpath");
-        return prefix + element.text();
+        Preconditions.checkNotNull(element.text());
+        String playUrl = vps + element.text();
+        String name = document.title().substring(0, document.title().indexOf("_"));
+        return VideoDTO.builder()
+                .thumb("https://adczma.com/static/p/Loading.gif")
+                .link(link)
+                .name(name)
+                .playUrl(playUrl)
+                .build();
     }
 
     private Integer getCategoryIndex(String category) {

@@ -1,7 +1,7 @@
-package cn.caojiantao.spider.netease;
+package cn.caojiantao.spider.music.netease;
 
 import cn.caojiantao.spider.AssetQuery;
-import cn.caojiantao.spider.media.MediaBeanContext;
+import cn.caojiantao.spider.music.MediaBeanContext;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.github.caojiantao.util.ExceptionUtils;

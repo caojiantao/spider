@@ -1,4 +1,4 @@
-package cn.caojiantao.spider.netease;
+package cn.caojiantao.spider.music.netease;
 
 import lombok.Data;
 

@@ -1,4 +1,4 @@
-package cn.caojiantao.spider.education;
+package cn.caojiantao.spider.adult;
 
 import cn.caojiantao.spider.dto.VideoCategoryDTO;
 import cn.caojiantao.spider.dto.VideoDTO;
@@ -18,15 +18,15 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/education")
-public class EducationController {
+@RequestMapping("/adult")
+public class AdultController {
 
     @Autowired
     private ApplicationContext context;
 
     @GetMapping("/{source}/getVideoCategoryList")
     public ResultDTO getVideoCategoryList(@PathVariable String source) {
-        IEducationService educationService = context.getBean(source, IEducationService.class);
+        IAdultService educationService = context.getBean(source, IAdultService.class);
         try {
             List<VideoCategoryDTO> videoCategoryList = educationService.getVideoCategoryList();
             return ResultDTO.success(videoCategoryList);
@@ -38,7 +38,7 @@ public class EducationController {
 
     @GetMapping("/{source}/getVideoList")
     public ResultDTO getVideoList(@PathVariable String source, String category, int page) {
-        IEducationService educationService = context.getBean(source, IEducationService.class);
+        IAdultService educationService = context.getBean(source, IAdultService.class);
         try {
             List<VideoDTO> videoDTOList = educationService.getVideoList(category, page);
             return ResultDTO.success(videoDTOList);
@@ -48,15 +48,12 @@ public class EducationController {
         }
     }
 
-    @GetMapping("/{source}/getVideoPlayUrl")
-    public ResultDTO getVideoPlayUrl(@PathVariable String source, String link) {
-        IEducationService educationService = context.getBean(source, IEducationService.class);
+    @GetMapping("/{source}/getVideoInfo")
+    public ResultDTO getVideoInfo(@PathVariable String source, String link) {
+        IAdultService adultService = context.getBean(source, IAdultService.class);
         try {
-            String playUrl = educationService.getVideoPlayUrl(link);
-            ResultDTO<String> result = new ResultDTO<>();
-            result.setCode(200);
-            result.setData(playUrl);
-            return result;
+            VideoDTO videoDTO = adultService.getVideoInfo(link);
+            return ResultDTO.success(videoDTO);
         } catch (Exception e) {
             log.error("获取视频地址异常", e);
             return ResultDTO.failure(e.getMessage());

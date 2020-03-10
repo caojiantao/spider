@@ -1,13 +1,15 @@
-package cn.caojiantao.spider.education;
+package cn.caojiantao.spider.adult;
 
 import cn.caojiantao.spider.dto.VideoCategoryDTO;
 import cn.caojiantao.spider.dto.VideoDTO;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Preconditions;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,7 +21,7 @@ import java.util.regex.Pattern;
  * @author caojiantao
  */
 @Service("n3t3")
-public class N3t3ServiceImpl implements IEducationService {
+public class N3t3ServiceImpl implements IAdultService {
 
     private static Pattern pattern = Pattern.compile("var player_data=(.*)");
 
@@ -60,7 +62,15 @@ public class N3t3ServiceImpl implements IEducationService {
     }
 
     @Override
-    public String getVideoPlayUrl(String link) throws Exception {
+    @Cacheable(cacheNames = "adultVideo")
+    public VideoDTO getVideoInfo(String link) throws Exception {
+        // 获取基本信息
+        Document infoDocument = Jsoup.connect(link).get();
+        Element filmInfo = infoDocument.getElementsByClass("film_info").first();
+        Element img = filmInfo.getElementsByTag("img").first();
+        String thumb = img.attr("src");
+        String name = img.attr("title");
+        // 获取播放地址
         int i = link.lastIndexOf("/");
         int j = link.indexOf(".html");
         String vid = link.substring(i, j);
@@ -68,15 +78,23 @@ public class N3t3ServiceImpl implements IEducationService {
         link = String.format(detailUrlFmt, vid);
         Document document = Jsoup.connect(link).get();
         Elements scripts = document.select("script");
+        String playUrl = null;
         for (Element script : scripts) {
             String text = script.html();
             Matcher matcher = pattern.matcher(text);
             if (matcher.matches()) {
                 String pageData = matcher.group(1);
                 JSONObject object = JSON.parseObject(pageData);
-                return object.getString("url");
+                playUrl = object.getString("url");
+                break;
             }
         }
-        return null;
+        Preconditions.checkNotNull(playUrl);
+        return VideoDTO.builder()
+                .thumb(thumb)
+                .name(name)
+                .link(link)
+                .playUrl(playUrl)
+                .build();
     }
 }

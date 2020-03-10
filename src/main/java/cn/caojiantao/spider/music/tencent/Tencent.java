@@ -1,4 +1,4 @@
-package cn.caojiantao.spider.tencent;
+package cn.caojiantao.spider.music.tencent;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

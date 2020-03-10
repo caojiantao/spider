@@ -16,14 +16,15 @@ public class SpiderFilter implements Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
-        String uri = request.getRequestURI();
         String ip = NetUtils.getIpAddress(request);
-        log.info("ip:{} uri:{} request start", ip, uri);
+        String uri = request.getRequestURI();
+        String query = request.getQueryString();
+        log.info("ip:{} uri:{} query:{} request start", ip, uri, query);
 
         long t = System.currentTimeMillis();
         filterChain.doFilter(servletRequest, servletResponse);
         long cost = System.currentTimeMillis() - t;
 
-        log.info("ip:{} uri:{} cost:{} request end", ip, uri, cost);
+        log.info("ip:{} uri:{} query:{} cost:{} request end", ip, uri, query, cost);
     }
 }

@@ -1,7 +1,7 @@
-package cn.caojiantao.spider.kugou;
+package cn.caojiantao.spider.music.kugou;
 
 import cn.caojiantao.spider.AssetQuery;
-import cn.caojiantao.spider.media.MediaBeanContext;
+import cn.caojiantao.spider.music.MediaBeanContext;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.github.caojiantao.util.ExceptionUtils;
@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import java.io.IOException;
+import java.util.UUID;
 
 /**
  * @author caojiantao
@@ -42,9 +43,10 @@ public class KugouServiceImpl implements IKugouService, InitializingBean {
     public JSONObject getSongInfo(AssetQuery query) {
         try {
             String result = Jsoup.connect(kugou.getSongPlay())
+                    .cookie("kg_mid", UUID.randomUUID().toString().replaceAll("-", ""))
                     .data("r", "play/getdata")
                     .data("hash", query.getHash())
-                    .data("album_id", query.getAlbumId())
+//                    .data("album_id", query.getAlbumId())
                     .get()
                     .text();
             return JSONObject.parseObject(result, JSONObject.class).getJSONObject("data");

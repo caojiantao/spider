@@ -1,4 +1,4 @@
-package cn.caojiantao.spider.media;
+package cn.caojiantao.spider.music;
 
 import cn.caojiantao.spider.AssetQuery;
 import com.github.caojiantao.dto.ResultDTO;
@@ -12,15 +12,16 @@ import org.springframework.web.bind.annotation.RestController;
  * @author caojiantao
  */
 @RestController
-@RequestMapping("/media")
+@RequestMapping("/music")
 public class MediaController {
 
     @GetMapping("/{platform}/{action}")
     public ResultDTO action(AssetQuery query, @PathVariable String platform, @PathVariable String action) {
-        MediaActionEnum actionEnum = MediaActionEnum.of(action);
-        Preconditions.checkNotNull(actionEnum, "action 不合法");
-        Object data = null;
         IMediaService mediaService = MediaBeanContext.fetch(platform);
+        Preconditions.checkNotNull(mediaService, platform + "不支持");
+        MediaActionEnum actionEnum = MediaActionEnum.of(action);
+        Preconditions.checkNotNull(actionEnum, action + "不合法");
+        Object data = null;
         switch (actionEnum) {
             case GET_SONG_LIST:
                 data = mediaService.getSongList(query);
@@ -34,7 +35,7 @@ public class MediaController {
             case GET_MV_INFO:
                 data = mediaService.getMvInfo(query);
                 break;
-            case GET_LYRIC_BYID:
+            case GET_LYRIC_BY_ID:
                 data = mediaService.getLyricById(query);
                 break;
             case GET_COMMENT_LIST:

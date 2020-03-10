@@ -16,7 +16,6 @@ public class AssetQuery extends BaseQuery {
 
     // 酷狗
     private String hash;
-    private String albumId;
 
     // QQ 音乐
     private String mid;

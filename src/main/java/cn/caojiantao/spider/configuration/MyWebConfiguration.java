@@ -1,6 +1,7 @@
 package cn.caojiantao.spider.configuration;
 
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @date 2018-10-24 16:03:06
  * @description
  */
+@EnableCaching
 @Configuration
 public class MyWebConfiguration implements WebMvcConfigurer {
 

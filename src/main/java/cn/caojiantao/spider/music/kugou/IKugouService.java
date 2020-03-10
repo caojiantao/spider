@@ -1,6 +1,6 @@
-package cn.caojiantao.spider.kugou;
+package cn.caojiantao.spider.music.kugou;
 
-import cn.caojiantao.spider.media.IMediaService;
+import cn.caojiantao.spider.music.IMediaService;
 import com.alibaba.fastjson.JSONObject;
 
 import java.io.IOException;

@@ -1,7 +1,7 @@
-package cn.caojiantao.spider.tencent;
+package cn.caojiantao.spider.music.tencent;
 
 import cn.caojiantao.spider.AssetQuery;
-import cn.caojiantao.spider.media.MediaBeanContext;
+import cn.caojiantao.spider.music.MediaBeanContext;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.github.caojiantao.util.ExceptionUtils;

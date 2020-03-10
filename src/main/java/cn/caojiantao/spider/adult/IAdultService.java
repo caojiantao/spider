@@ -1,4 +1,4 @@
-package cn.caojiantao.spider.education;
+package cn.caojiantao.spider.adult;
 
 import cn.caojiantao.spider.dto.VideoCategoryDTO;
 import cn.caojiantao.spider.dto.VideoDTO;
@@ -8,11 +8,11 @@ import java.util.List;
 /**
  * @author caojiantao
  */
-public interface IEducationService {
+public interface IAdultService {
 
     List<VideoCategoryDTO> getVideoCategoryList() throws Exception;
 
     List<VideoDTO> getVideoList(String category, int page) throws Exception;
 
-    String getVideoPlayUrl(String link) throws Exception;
+    VideoDTO getVideoInfo(String link) throws Exception;
 }

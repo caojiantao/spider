@@ -1,4 +1,4 @@
-package cn.caojiantao.spider.netease;
+package cn.caojiantao.spider.music.netease;
 
 import cn.caojiantao.spider.AssetQuery;
 import com.alibaba.fastjson.JSONArray;

@@ -1,6 +1,6 @@
-package cn.caojiantao.spider.netease;
+package cn.caojiantao.spider.music.netease;
 
-import cn.caojiantao.spider.media.IMediaService;
+import cn.caojiantao.spider.music.IMediaService;
 
 /**
  * @author caojiantao
