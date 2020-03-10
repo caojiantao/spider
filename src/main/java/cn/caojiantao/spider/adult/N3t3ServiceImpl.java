@@ -52,7 +52,7 @@ public class N3t3ServiceImpl implements IAdultService {
         Document document = Jsoup.connect(builder.toString()).get();
         Elements elements = document.select(".box.movie1_list li a");
         elements.forEach(element -> {
-            String href = element.attr("href");
+            String href = host + element.attr("href");
             String imgUrl = element.getElementsByTag("img").first().attr("src");
             String title = element.getElementsByTag("h3").first().text();
             VideoDTO videoDTO = VideoDTO.builder().name(title).link(href).thumb(imgUrl).build();
@@ -75,8 +75,8 @@ public class N3t3ServiceImpl implements IAdultService {
         int j = link.indexOf(".html");
         String vid = link.substring(i, j);
         String detailUrlFmt = "http://n3t3.com/index.php/vod/play/id/%s/sid/1/nid/1.html";
-        link = String.format(detailUrlFmt, vid);
-        Document document = Jsoup.connect(link).get();
+        String detailUrl = String.format(detailUrlFmt, vid);
+        Document document = Jsoup.connect(detailUrl).get();
         Elements scripts = document.select("script");
         String playUrl = null;
         for (Element script : scripts) {
